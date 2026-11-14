@@ -1,0 +1,6 @@
+test,n_orders,p_value,cramers_v,diff_pp,significant_at_5pct
+Late rate by shipping_mode,62897,0,0.481,,True
+Late rate by market,62897,0.529,0.007,,False
+Late rate by order_region,62897,0.103,0.022,,False
+Late rate by india_tier,2070,0.529,0.025,,False
+India Metro vs Tier 2/3 (two-proportion z),2070,0.61,,1.4,False
