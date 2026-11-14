@@ -1,0 +1,5 @@
+Scenario,On-time Rate,Late Cost Lakh,Saving Lakh
+1. Baseline,0.42700000000000000000,23.38,0
+2. First Class promise 1 to 2 days,0.58000000000000000000,17.67,5.71
+3. Shift 30% Second Class to Standard,0.45100000000000000000,22.18,1.20
+4. Both actions,0.60300000000000000000,16.46,6.92
