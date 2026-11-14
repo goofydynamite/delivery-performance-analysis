@@ -16,3 +16,7 @@ tableau/Delivery Performance.twb
 
 # Python
 __pycache__/
+
+# Local helper files for rebuilding the Tableau workbook
+tableau/build_workbook.py
+tableau/extract_seed.twbx
