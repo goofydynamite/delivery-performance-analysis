@@ -82,7 +82,7 @@ I'd also renegotiate the Second Class transit SLA (3 days max, with a penalty pe
 
 ## Dashboard
 
-The Tableau workbook is [tableau/Delivery Performance.twbx](tableau/Delivery%20Performance.twbx) and opens in Tableau Public. It has three dashboards:
+Live on Tableau Public: [Delivery Performance](https://public.tableau.com/app/profile/deepti.singh.kushwaha/viz/DeliveryPerformance_17945713159400/ExecutiveOverview). The workbook is also in the repo at [tableau/Delivery Performance.twbx](tableau/Delivery%20Performance.twbx). It has three dashboards:
 
 - **Executive Overview**: KPIs, on-time by mode (click a bar to filter the rest), monthly trend, mode x market heatmap and a "how late" distribution
 - **India Lens**: a city map, Metro vs Tier 2 vs Tier 3, and a tier x mode heatmap
