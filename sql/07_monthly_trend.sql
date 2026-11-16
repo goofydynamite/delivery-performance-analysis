@@ -1,7 +1,7 @@
 -- 07_monthly_trend.sql
--- Monthly on-time trend with a 3-month rolling average and month-over-month change.
--- Note: from Oct 2017 item rows roughly halve but ORDER counts rise slightly
--- (orders become single-item). Counting per order keeps the trend comparable.
+-- Monthly on-time rate with a 3 month rolling average and month-on-month change.
+-- From Oct 2017 the number of item rows halves but orders go up a bit (most orders
+-- become single-item), which is another reason to count per order.
 
 DROP VIEW IF EXISTS v_monthly_trend CASCADE;
 CREATE VIEW v_monthly_trend AS
@@ -26,12 +26,12 @@ SELECT
   ROUND(late_cost_inr / 1e5, 2)                                                 AS late_cost_lakh
 FROM monthly;
 
--- Latest 12 full months (Feb 2017 - Jan 2018)
+-- last 12 full months
 SELECT * FROM v_monthly_trend
 WHERE order_month BETWEEN DATE '2017-02-01' AND DATE '2018-01-01'
 ORDER BY order_month;
 
--- Spread over those 12 months: is there a real trend?
+-- how much does it move?
 SELECT MIN(ontime_pct) AS worst_month_pct,
        MAX(ontime_pct) AS best_month_pct,
        ROUND(MAX(ontime_pct) - MIN(ontime_pct), 1) AS range_pp

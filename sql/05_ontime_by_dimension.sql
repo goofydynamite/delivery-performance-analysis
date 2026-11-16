@@ -1,8 +1,7 @@
 -- 05_ontime_by_dimension.sql
--- On-time delivery rate by dimension, ranked worst -> best, against a 95% target.
--- Order grain, cancelled orders excluded. Groups with < 30 orders are dropped (too small to judge).
+-- On-time rate by dimension, worst first, compared with a 95% target.
+-- Per order, cancelled orders left out. Groups under 30 orders are dropped.
 
--- Reusable summary: one row per (dimension, value)
 DROP VIEW IF EXISTS v_ontime_by_dimension CASCADE;
 CREATE VIEW v_ontime_by_dimension AS
 WITH delivered AS (
@@ -34,25 +33,25 @@ FROM long_format
 GROUP BY dimension, value
 HAVING COUNT(*) >= 30;
 
--- 1) Shipping mode (DataCo's equivalent of "carrier service level")
+-- shipping mode (no carrier column in DataCo, so this is the closest thing)
 SELECT value AS shipping_mode, orders, late_orders, ontime_pct, gap_to_95_target_pp,
        avg_delay_days_when_late, worst_rank
 FROM v_ontime_by_dimension WHERE dimension = 'Shipping mode' ORDER BY worst_rank;
 
--- 2) Market
+-- market
 SELECT value AS market, orders, late_orders, ontime_pct, gap_to_95_target_pp, worst_rank
 FROM v_ontime_by_dimension WHERE dimension = 'Market' ORDER BY worst_rank;
 
--- 3) Order region (worst 5 and best 5 shown by rank)
+-- order region
 SELECT value AS order_region, orders, ontime_pct, gap_to_95_target_pp, worst_rank
 FROM v_ontime_by_dimension WHERE dimension = 'Order region' ORDER BY worst_rank;
 
--- 4) India: Metro vs Tier 2 vs Tier 3
+-- India: metro vs tier 2 vs tier 3
 SELECT value AS india_tier, orders, late_orders, ontime_pct, gap_to_95_target_pp,
        avg_delay_days_when_late, worst_rank
 FROM v_ontime_by_dimension WHERE dimension = 'India tier' ORDER BY worst_rank;
 
--- 5) India tier x shipping mode: is a mode bad everywhere or only in Tier 2/3?
+-- is a mode bad everywhere, or only in smaller cities?
 SELECT india_tier, shipping_mode,
        COUNT(*)                              AS orders,
        ROUND(100.0 * (1 - AVG(is_late)), 1)  AS ontime_pct
@@ -61,8 +60,7 @@ WHERE is_cancelled = 0 AND india_tier IS NOT NULL
 GROUP BY india_tier, shipping_mode
 ORDER BY shipping_mode, india_tier;
 
--- 6) Product category (item grain: an order can contain several categories;
---    each item inherits its order's late flag)
+-- product category (counted per item, since one order can have several categories)
 SELECT category_name,
        COUNT(DISTINCT order_id)                                AS orders,
        COUNT(*)                                                AS items,
@@ -74,7 +72,7 @@ GROUP BY category_name
 HAVING COUNT(DISTINCT order_id) >= 30
 ORDER BY worst_rank;
 
--- 7) Cancellations (SUSPECTED_FRAUD + CANCELED order statuses) by shipping mode
+-- cancellations (SUSPECTED_FRAUD + CANCELED) by mode
 SELECT shipping_mode,
        COUNT(*)                                    AS orders,
        SUM(is_cancelled)                           AS cancelled_orders,

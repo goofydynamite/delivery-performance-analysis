@@ -1,8 +1,6 @@
-"""Significance checks for the delivery findings.
+"""Checks whether the late rate really differs by shipping mode, market, region and India tier.
 
-Reads exports/orders.csv (one row per delivered order, built by sql/08_export_for_tableau.sql)
-and tests whether late-delivery rates really differ by shipping mode, market and India city tier.
-Run from the project folder:  py python/stat_tests.py
+Uses exports/orders.csv (from sql/08). Run from the project folder: py python/stat_tests.py
 """
 from pathlib import Path
 
@@ -37,7 +35,7 @@ results = [
 india = orders[orders["india_tier"].notna()]
 results.append(chi_square(india, "india_tier"))
 
-# Metro vs Tier 2/3 two-proportion z-test
+# metro vs smaller cities
 metro = india[india["india_tier"] == "Metro"]["is_late"]
 non_metro = india[india["india_tier"] != "Metro"]["is_late"]
 z, p = proportions_ztest([metro.sum(), non_metro.sum()], [len(metro), len(non_metro)])

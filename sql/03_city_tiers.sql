@@ -1,8 +1,7 @@
 -- 03_city_tiers.sql
--- India city tier lookup, based on the Government of India HRA city classification
--- (X cities = Metro, Y cities = Tier 2, all other cities = Tier 3).
--- Spellings match the dataset (e.g. 'Dehra Dun', 'Nasik', 'Allahabad').
--- Kolkata and Ahmedabad (X cities) do not appear in the India orders.
+-- India city tiers from the government HRA city list: X = Metro, Y = Tier 2, everything else Tier 3.
+-- Spellings follow the dataset ('Dehra Dun', 'Nasik', 'Allahabad').
+-- Kolkata and Ahmedabad are X cities but have no orders in the data.
 
 DROP TABLE IF EXISTS india_city_tier CASCADE;
 CREATE TABLE india_city_tier (city TEXT PRIMARY KEY, tier TEXT NOT NULL);
@@ -25,7 +24,7 @@ SELECT city, 'Tier 2' FROM unnest(ARRAY[
   'Varanasi','Vijayawada','Visakhapatnam','Warangal'
 ]) AS city;
 
--- Check (non-cancelled India orders): Tier 2 = 1263, Tier 3 = 427, Metro = 380
+-- delivered India orders: Tier 2 = 1263, Tier 3 = 427, Metro = 380
 SELECT COALESCE(t.tier, 'Tier 3') AS tier,
        COUNT(DISTINCT d.order_id) AS orders
 FROM deliveries d

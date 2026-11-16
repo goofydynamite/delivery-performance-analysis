@@ -1,8 +1,8 @@
 -- 04_orders_view.sql
--- One row per ORDER. All items in an order share shipping mode, dates and the late flag
--- (verified below), so SLA metrics are counted per order; otherwise big orders count twice.
+-- One row per order. Items in the same order always share shipping mode, dates and the
+-- late flag (checked below), so on-time is counted per order. Otherwise big orders count twice.
 
--- Check: should return 0 (no order has conflicting delivery attributes)
+-- should be 0
 SELECT COUNT(*) AS conflicting_orders
 FROM (
   SELECT order_id
@@ -42,7 +42,7 @@ FROM deliveries d
 LEFT JOIN india_city_tier t ON d.order_city = t.city
 GROUP BY d.order_id;
 
--- Checks: 65752 orders | 62897 delivered (not cancelled) | 42.7% on-time
+-- expect 65752 orders, 62897 delivered, 42.7% on time
 SELECT COUNT(*)                                                   AS orders,
        COUNT(*) FILTER (WHERE is_cancelled = 0)                   AS delivered_orders,
        ROUND(100.0 * (1 - AVG(is_late) FILTER (WHERE is_cancelled = 0)), 1) AS ontime_pct

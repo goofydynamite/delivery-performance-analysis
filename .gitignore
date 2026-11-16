@@ -1,22 +1,6 @@
-# Raw data is large (96 MB): download it from Kaggle (see README)
+# raw data is 96 MB, download it from Kaggle (see README)
 DataCo Smart Supply Chain/
 
-# Personal working notes
-GUIDE.md
-GUIDE_advanced_extras.md
-progress_log.md
-
-# Tableau lock files and the readable .twb copy (the packaged .twbx is the deliverable)
-~*.twbr
-*.twbr
-tableau/Delivery Performance.twb
-
-# Excel exploration copy
 *.xlsx
-
-# Python
+*.twbr
 __pycache__/
-
-# Local helper files for rebuilding the Tableau workbook
-tableau/build_workbook.py
-tableau/extract_seed.twbx

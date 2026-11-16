@@ -1,7 +1,6 @@
 @echo off
-REM Rebuilds the whole SQL pipeline in order and exports the Tableau CSVs.
-REM Assumes PostgreSQL 18 on localhost and a database called delivery_sla.
-REM 01_load.sql reads C:\Users\Public\dataco.csv (copy of the raw DataCo CSV).
+REM Runs sql\01 to 08 in order. Needs Postgres 18 locally, a database called delivery_sla
+REM and the DataCo CSV copied to C:\Users\Public\dataco.csv.
 cd /d "%~dp0"
 if not exist exports mkdir exports
 set PSQL="C:\Program Files\PostgreSQL\18\bin\psql.exe" -h 127.0.0.1 -U postgres -d delivery_sla -v ON_ERROR_STOP=1

@@ -1,5 +1,5 @@
 -- 01_load.sql
--- Raw landing table: every column TEXT so the load can never fail on a bad value.
+-- Raw table, every column as text so a bad value can't break the load. Types get fixed in 02.
 DROP TABLE IF EXISTS raw_dataco CASCADE;
 
 CREATE TABLE raw_dataco (
@@ -22,12 +22,13 @@ CREATE TABLE raw_dataco (
   product_name TEXT, product_price TEXT, product_status TEXT,
   shipping_date TEXT, shipping_mode TEXT
 );
--- Load the CSV (copied to C:\Users\Public so the PostgreSQL service can read it)
+
+-- The Postgres service can't read my Downloads folder, so the CSV is copied to C:\Users\Public first
 TRUNCATE raw_dataco;
 
 COPY raw_dataco
 FROM 'C:/Users/Public/dataco.csv'
 WITH (FORMAT csv, HEADER true, ENCODING 'LATIN1');
 
--- Check: should return 180519
+-- should be 180519
 SELECT COUNT(*) FROM raw_dataco;

@@ -1,21 +1,19 @@
 -- 06_cost_impact.sql
--- Cost of late deliveries.
---   1) Holding cost (the brief's method): delay_days x order value x annual carrying rate / 365
---   2) Broken-promise cost: a flat cost per late order for support contacts, goodwill vouchers
---      and cancellations/RTO caused by missing the promised date.
--- All inputs are ASSUMPTIONS kept in one place (cost_params) so they are easy to change.
--- "Annual" figures use the latest 12 full months in the data: Feb 2017 - Jan 2018.
+-- Cost of late deliveries, two parts:
+--   holding cost = delay_days x order value x carrying rate / 365
+--   plus a flat cost per late order (support contact, voucher, some cancellations/RTO)
+-- The inputs are my assumptions and live in cost_params so they're easy to change.
+-- "Per year" means the last 12 full months in the data (Feb 2017 to Jan 2018).
 
 DROP TABLE IF EXISTS cost_params CASCADE;
 CREATE TABLE cost_params AS
 SELECT
-  0.25::NUMERIC  AS carrying_rate_annual,      -- 25% inventory carrying cost per year (typical textbook range 20-30%)
-  85::NUMERIC    AS usd_to_inr,                -- assumed FX rate; update to the current rate before publishing
-  150::NUMERIC   AS broken_promise_cost_inr,   -- assumed cost per late order (support + voucher + share of RTO)
+  0.25::NUMERIC  AS carrying_rate_annual,      -- usually quoted somewhere between 20 and 30%
+  85::NUMERIC    AS usd_to_inr,                -- rough rate
+  150::NUMERIC   AS broken_promise_cost_inr,   -- guess per late order
   DATE '2017-02-01' AS window_start,
   DATE '2018-01-31' AS window_end;
 
--- Cost per delivered order
 DROP VIEW IF EXISTS v_order_cost CASCADE;
 CREATE VIEW v_order_cost AS
 SELECT
@@ -29,7 +27,7 @@ FROM v_orders o
 CROSS JOIN cost_params p
 WHERE o.is_cancelled = 0;
 
--- 1) Last-12-month cost by shipping mode (the business-case table)
+-- cost by shipping mode, last 12 months
 SELECT
   shipping_mode,
   COUNT(*)                                                  AS orders,
@@ -45,7 +43,7 @@ WHERE in_last_12m
 GROUP BY shipping_mode
 ORDER BY total_cost_lakh DESC;
 
--- 2) Network total, last 12 months
+-- totals, last 12 months
 SELECT
   COUNT(*)                                       AS orders,
   SUM(c.is_late)                                 AS late_orders,
@@ -59,7 +57,7 @@ SELECT
 FROM v_order_cost c CROSS JOIN cost_params p
 WHERE c.in_last_12m;
 
--- 3) India tier cost, full period (India volume is too small to split by 12 months)
+-- India tiers, whole period (not enough India orders to use just 12 months)
 SELECT
   india_tier,
   COUNT(*)                                 AS orders,
@@ -72,10 +70,10 @@ WHERE india_tier IS NOT NULL
 GROUP BY india_tier
 ORDER BY ontime_pct;
 
--- 4) Scenarios (last 12 months)
---   A: Re-baseline First Class promise from 1 day to 2 days (it ALWAYS takes 2 days)
---   B: Shift 30% of Second Class volume to Standard Class (late rate of Standard applied)
---   C: A + B together
+-- what-if, last 12 months:
+--   A: promise 2 days for First Class instead of 1 (it always takes 2)
+--   B: move 30% of Second Class orders to Standard (at Standard's late rate)
+--   C: both
 DROP VIEW IF EXISTS v_scenarios CASCADE;
 CREATE VIEW v_scenarios AS
 WITH base AS (
@@ -96,7 +94,7 @@ fc AS (SELECT * FROM base WHERE shipping_mode = 'First Class'),
 sc AS (SELECT * FROM base WHERE shipping_mode = 'Second Class'),
 st AS (SELECT * FROM base WHERE shipping_mode = 'Standard Class'),
 scenario_a AS (
-  -- With a 2-day promise every First Class order is on time: all its late orders and cost disappear
+  -- with a 2 day promise every First Class order is on time
   SELECT fc.late_orders AS late_saved, fc.cost AS cost_saved FROM fc
 ),
 scenario_b AS (

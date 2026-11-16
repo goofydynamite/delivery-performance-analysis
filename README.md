@@ -84,9 +84,9 @@ I'd also renegotiate the Second Class transit SLA (3 days max, with a penalty pe
 
 Live on Tableau Public: [Delivery Performance](https://public.tableau.com/app/profile/deepti.singh.kushwaha/viz/DeliveryPerformance_17945713159400/ExecutiveOverview). The workbook is also in the repo at [tableau/Delivery Performance.twbx](tableau/Delivery%20Performance.twbx). It has three dashboards:
 
-- **Executive Overview**: KPIs, on-time by mode (click a bar to filter the rest), monthly trend, mode x market heatmap and a "how late" distribution
-- **India Lens**: a city map, Metro vs Tier 2 vs Tier 3, and a tier x mode heatmap
-- **Cost Simulator**: sliders for the cost assumptions, the volume shift and the target. The cost, projected on-time rate and saving update as you move them.
+- Executive Overview: KPIs, on-time by mode (click a bar to filter the rest), monthly trend, mode x market heatmap and a "how late" distribution
+- India Lens: a city map, Metro vs Tier 2 vs Tier 3, and a tier x mode heatmap
+- Cost Simulator: sliders for the cost assumptions, the volume shift and the target. The cost, projected on-time rate and saving update as you move them.
 
 ![Executive overview](reports/dashboard_overview.jpg)
 
