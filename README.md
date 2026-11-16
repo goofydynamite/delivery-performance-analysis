@@ -92,6 +92,8 @@ Live on Tableau Public: [Delivery Performance](https://public.tableau.com/app/pr
 
 ![India lens](reports/dashboard_india.jpg)
 
+![Cost simulator](reports/dashboard_cost.jpg)
+
 ## Running it
 
 1. Create a PostgreSQL database called `delivery_sla`.
