@@ -14,15 +14,45 @@ I started with the smaller "Supply Chain Analysis" dataset that gets recommended
 
 The raw CSV is 96 MB, so it isn't in the repo. Download `DataCoSupplyChainDataset.csv` from the link above.
 
-Things I had to deal with while cleaning:
+## Data cleaning
 
-- The file is Latin-1, not UTF-8 (Rajastán, São Paulo etc. break otherwise).
-- Dates are US format (M/D/YYYY). Excel turned 2/3/2018 into 2 March when I first opened it, so all date parsing happens in SQL.
-- Trailing and double spaces in region, category and product names (17,925 rows in region alone).
-- Emails and passwords are masked, a few columns are empty, and 6 columns are exact copies of other columns. I checked each pair before dropping it.
-- The data is one row per item, not per order. All items in an order share the same shipping mode and dates, so I count on-time per order. Otherwise big orders get counted several times.
-- 7,754 order lines are cancelled (SUSPECTED_FRAUD or CANCELED). I left those out of the on-time numbers.
+I first opened the file in Excel to get a feel for it, then did all the actual cleaning in SQL so it can be re-run.
+
+**1. Exploring in Excel**
+- Opened the CSV, saved a working copy and looked through the 53 columns.
+- Spotted the problems listed below: extra spaces, Spanish place names, US dates that Excel was converting wrongly, and SUSPECTED_FRAUD / CANCELED orders.
+- Checked that 6 pairs of columns were exact duplicates using `SUMPRODUCT` (0 differences in every pair).
+
+**2. Loading (`sql/01_load.sql`)**
+- Loaded the raw CSV into a table where every column is text, so a bad value can't break the load.
+- The file is Latin-1, not UTF-8, so it's loaded with `ENCODING 'LATIN1'`. Otherwise names like Rajastán and São Paulo come out garbled.
+- Check: 180,519 rows loaded.
+
+**3. Cleaning (`sql/02_clean.sql`)**
+
+| Step | Rows affected | What I did |
+|---|---:|---|
+| Dropped columns I didn't need | all | Removed 15 of 53 columns: masked email/password, customer name and street (personal data), `product_description` (100% empty), `order_zipcode` (86% empty), `product_image`, `product_status` (always 0) and 6 duplicate columns |
+| Fixed data types | all | Text to integers, decimals and timestamps |
+| Parsed dates | all | Dates are US format (M/D/YYYY), so I read them with `TO_TIMESTAMP(..., 'MM/DD/YYYY HH24:MI')`. Excel had read 2/3/2018 as 2 March. |
+| Removed extra spaces | 17,925 in region, 1,774 in product, 1,543 in category, 362 in department | `TRIM` plus collapsing double spaces (e.g. `'South of  USA '`) so the same value doesn't show up twice in charts |
+| Flagged cancelled orders | 7,754 | `is_cancelled = 1` for SUSPECTED_FRAUD and CANCELED orders. These are left out of all on-time numbers. |
+| Added delivery columns | all | `promised_days`, `actual_days`, `delay_days` (days past the promise, 0 if on time), `is_late`, `order_month` |
+
+Checks after cleaning: 180,519 rows, 7,754 cancelled, 98,977 late, 160,163 total delay days. The late count matches the dataset's own `Late_delivery_risk` flag.
+
+**4. India city tiers (`sql/03_city_tiers.sql`)**
+- Built a lookup of 85 cities from the government HRA city list (X = Metro, Y = Tier 2, everything else Tier 3), using the dataset's own spellings ('Dehra Dun', 'Nasik', 'Allahabad').
+- Result: 380 Metro, 1,263 Tier 2 and 427 Tier 3 delivered orders.
+
+**5. One row per order (`sql/04_orders_view.sql`)**
+- The data has one row per item, so an order with 5 items would be counted 5 times. I collapsed it to one row per order.
+- Checked first that every item in an order has the same shipping mode, dates and late flag: 0 conflicts.
+- Result: 65,752 orders, 62,897 delivered.
+
+**Other things worth knowing about the data**
 - There's no carrier column, so I used shipping mode (Standard / Second / First Class / Same Day) as the service level instead.
+- State and country names are in Spanish (Rajastán, Guyarat, Alemania). That didn't affect the analysis, since it uses city names for India.
 - Actual shipping days are spread almost perfectly evenly within each mode (Second Class is basically uniform between 2 and 6 days), so the data looks simulated. I treat the results as a demo of the method rather than a real-world finding.
 
 ## How it's built
